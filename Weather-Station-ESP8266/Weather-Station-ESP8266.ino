@@ -1,20 +1,26 @@
 #include <ESP8266WiFi.h>
-#include <ESP8266WiFiMulti.h>
 #include <InfluxDb.h>
 #include <Adafruit_Sensor.h>
 #include <DHT.h>
 #include <DHT_U.h>
+#include <WiFiClientSecure.h>
+#include <UniversalTelegramBot.h>
 
-#define INFLUXDB_HOST "........"
+#define INFLUXDB_HOST "...."
 #define INFLUXDB_PORT "8086"
-#define INFLUXDB_DATABASE "........."
-#define SSID "......"
-#define PASSWORD "......."
+#define INFLUXDB_DATABASE "...."
+#define SSID "...."
+#define PASSWORD "...."
 #define DHTPIN 2
 #define DHTTYPE DHT11
+#define BOT_TOKEN "...."
+#define CHAT_ID "...."
 
 Influxdb influx(INFLUXDB_HOST);
 DHT dht(DHTPIN, DHTTYPE);
+
+WiFiClientSecure client;
+UniversalTelegramBot bot(BOT_TOKEN, client);
 
 void setup()
 {
@@ -25,7 +31,7 @@ void setup()
   WiFi.begin(SSID, PASSWORD);
 
   Serial.print("Connecting to ");
-  Serial.print(ssid);
+  Serial.print(SSID);
   while (WiFi.status() != WL_CONNECTED)
   {
     delay(500);
@@ -74,6 +80,8 @@ void loop() {
   row.addValue("Humedad", h);
   row.addValue("Indice_de_calor_c", hic);
   row.addValue("Indice_de_calor_f", hif);
+
+  bot.sendMessage(CHAT_ID, "Temperatura" + String(t),"");
 
 
   influx.write(row);
