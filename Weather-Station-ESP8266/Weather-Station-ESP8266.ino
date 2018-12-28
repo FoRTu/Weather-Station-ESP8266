@@ -4,23 +4,23 @@
 #include <DHT.h>
 #include <DHT_U.h>
 #include <WiFiClientSecure.h>
-#include <UniversalTelegramBot.h>
 
-#define INFLUXDB_HOST "...."
+#define INFLUXDB_HOST "192.168.X.X"
 #define INFLUXDB_PORT "8086"
-#define INFLUXDB_DATABASE "...."
-#define SSID "...."
-#define PASSWORD "...."
+#define INFLUXDB_DATABASE "TEMP_DATABASE"
+#define SSID "My-WiFi"
+#define PASSWORD "XXXXX"
+#define HOSTNAME "ESP-01-DHT11"
 #define DHTPIN 2
 #define DHTTYPE DHT11
-#define BOT_TOKEN "...."
-#define CHAT_ID "...."
+
+// Tiempo de DeepSleep del ESP8266 en microsegundos
+uint32_t SLEEP_TIME = 6e7;
 
 Influxdb influx(INFLUXDB_HOST);
 DHT dht(DHTPIN, DHTTYPE);
 
 WiFiClientSecure client;
-UniversalTelegramBot bot(BOT_TOKEN, client);
 
 void setup()
 {
@@ -29,37 +29,40 @@ void setup()
   Serial.println();
 
   WiFi.begin(SSID, PASSWORD);
+  WiFi.hostname(HOSTNAME);
 
-  Serial.print("Connecting to ");
+  Serial.print("Conectando ");
   Serial.print(SSID);
   while (WiFi.status() != WL_CONNECTED)
   {
-    delay(500);
+    delay(1000);
     Serial.print(".");
   }
   Serial.println();
 
-  Serial.print("Connected, IP address: ");
+  Serial.print("Conectado, IP: ");
   Serial.println(WiFi.localIP());
 
   // InfluxDB
   influx.setDb(INFLUXDB_DATABASE);
 
-  // Init DHT sensor
+  // Sensor DHT
   dht.begin();
 
-  Serial.println("Setup done.");
+  Serial.println("Setup finalizado.");
 }
 
 void loop() {
 
   // Leemos la humedad relativa
   float h = dht.readHumidity();
+  Serial.println("Humeda %: " + String(h));
   // Leemos la temperatura en grados centígrados (por defecto)
   float t = dht.readTemperature();
+  Serial.println("Temperatura ºC: " + String(t));
   // Leemos la temperatura en grados Fahrenheit
   float f = dht.readTemperature(true);
-
+  Serial.println("Temperatura F: " + String(f));
   // Comprobamos si ha habido algún error en la lectura
   if (isnan(h) || isnan(t) || isnan(f)) {
     Serial.println("Error obteniendo los datos del sensor DHT11");
@@ -71,20 +74,19 @@ void loop() {
   // Calcular el índice de calor en grados centígrados
   float hic = dht.computeHeatIndex(t, h, false);
 
-
+  // Preparar los datos para InfluxDB
   InfluxData row("Datos");
   row.addTag("device", "DHT");
-  row.addTag("sensor", "one");
+  row.addTag("sensor", "TEST");
   row.addValue("Centigrados", t);
   row.addValue("Fahrenheit", f);
   row.addValue("Humedad", h);
   row.addValue("Indice_de_calor_c", hic);
   row.addValue("Indice_de_calor_f", hif);
 
-  bot.sendMessage(CHAT_ID, "Temperatura" + String(t),"");
-
-
+  // Guardar los datos en InfluxDB
   influx.write(row);
-
-  delay(5000);
+  
+  //Porner el dispositivo en DeepSleep
+  ESP.deepSleep(SLEEP_TIME, WAKE_RF_DEFAULT);
 }
