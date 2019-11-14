@@ -1,55 +1,46 @@
 #include <ESP8266WiFi.h>
-#include <ArduinoOTA.h>
 #include <PubSubClient.h>
 #include <DHT.h>
 
 #include <Adafruit_Sensor.h>
 
-#include "config.h"  // Variables de configuracion
-#include "ESP8266_Utils.hpp"
-#include "ESP8266_Utils_OTA.hpp"
+#include "config.h"  // Configure file
 
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-#include "MQTT_Utils.hpp"
-
 DHT dht(DHTPIN, DHTTYPE);
-float h, t, f;
 
 void setup(){
-	Serial.begin(115200);
-
-	ConnectWiFi_STA();
-
-	InitOTA();
-
-  client.setServer(mqtt_server, 1883);
-
+	WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  WiFi.config(ip, gateway, subnet);
+  while (WiFi.status() != WL_CONNECTED) 
+  { 
+    delay(100);
+  }
+	client.setServer(mqtt_server, 1883);
   dht.begin();
 }
 
 void loop(){
-	ArduinoOTA.handle();
-  delay(2500);
+	delay(500);
   float h = dht.readHumidity();
   float t = dht.readTemperature();
   if (isnan(h) || isnan(t)) {
-      Serial.println("Failed to read from DHT sensor!");
+    while (reading_attempts >= 0){
+      reading_attempts--;
       return;
+    }
+    ESP.deepSleep(sleeptime);
   }
 
-  Serial.println("Humeda %: " + String(h));
   
-  Serial.println("Temperatura ºC: " + String(t));
-  
-  char Temp[6];
-  char Hum[6];
   dtostrf(t, 5, 2, Temp);
   dtostrf(h, 5, 2, Hum);
-  
-  sendMessage("MQTT/TOPIC", Temp);
-  sendMessage("MQTT/TOPIC", Hum);
+  client.connect(mqtt_clientid, mqtt_username, mqtt_password);
+  client.publish("MQTT/DEFINE/TOPIC/TEMP", Temp);
+  client.publish("MQTT/DEFINE/TOPIC/HUM", Hum);
   delay(100);
   ESP.deepSleep(sleeptime);
 }

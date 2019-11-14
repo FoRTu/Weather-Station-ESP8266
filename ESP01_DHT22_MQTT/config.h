@@ -1,12 +1,15 @@
 const char* ssid     = "XXXXXX";
 const char* password = "XXXXXX";
-const char* hostname = "ESP01";
-const char* ota_password = "XXXXXX";
-const double sleeptime = 1800e6; // en microsegundos
-const char* mqtt_server = "XXXXXX";
+const char* hostname = "XXXXXX";
+const char* mqtt_server = "X.X.X.X";
 const char* mqtt_username = "XXXXXX";
 const char* mqtt_password = "XXXXXX";
 const char* mqtt_clientid = "ESP01-ID";
+const double sleeptime = 1800e6; // In microseconds
+char Temp[6];
+char Hum[6];
+float h, t;
+int reading_attempts = 10;
 
 #define DHTPIN 0
 #define DHTTYPE DHT22
