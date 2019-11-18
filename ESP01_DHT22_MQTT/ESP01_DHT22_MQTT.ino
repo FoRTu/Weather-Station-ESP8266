@@ -6,6 +6,10 @@
 
 #include "config.h"  // Configure file
 
+char Temp[6];
+char Hum[6];
+float h, t;
+
 WiFiClient espClient;
 PubSubClient client(espClient);
 

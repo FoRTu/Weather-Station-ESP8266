@@ -6,9 +6,6 @@ const char* mqtt_username = "XXXXXX";
 const char* mqtt_password = "XXXXXX";
 const char* mqtt_clientid = "ESP01-ID";
 const double sleeptime = 1800e6; // In microseconds
-char Temp[6];
-char Hum[6];
-float h, t;
 int reading_attempts = 10;
 
 #define DHTPIN 0
