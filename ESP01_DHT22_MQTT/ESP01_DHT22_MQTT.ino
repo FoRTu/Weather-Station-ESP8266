@@ -46,5 +46,6 @@ void loop(){
   client.publish("MQTT/DEFINE/TOPIC/TEMP", Temp);
   client.publish("MQTT/DEFINE/TOPIC/HUM", Hum);
   delay(100);
+  client.disconnect();
   ESP.deepSleep(sleeptime);
 }
