@@ -1,5 +1,5 @@
 #include <ESP8266WiFi.h>
-#include <PubSubClient.h>
+#include <PubSubClient.h> // https://pubsubclient.knolleary.net/api.html
 #include <DHT.h>
 
 #include <Adafruit_Sensor.h>
@@ -43,8 +43,8 @@ void loop(){
   dtostrf(t, 5, 2, Temp);
   dtostrf(h, 5, 2, Hum);
   client.connect(mqtt_clientid, mqtt_username, mqtt_password);
-  client.publish("MQTT/DEFINE/TOPIC/TEMP", Temp);
-  client.publish("MQTT/DEFINE/TOPIC/HUM", Hum);
+  client.publish("MQTT/DEFINE/TOPIC/TEMP", Temp, true);
+  client.publish("MQTT/DEFINE/TOPIC/HUM", Hum, true);
   delay(100);
   ESP.deepSleep(sleeptime);
 }
